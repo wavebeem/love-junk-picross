@@ -11,7 +11,7 @@ local function loadPuzzle(filename)
         local char  = line:sub(1, 1)
         local empty = not not line:find("^%s*$")
 
-        if not empty and char == "." or char == "#" then
+        if not empty and (char == "." or char == "#") then
             doneReadingInfo = true
 
             if info.title == nil then
