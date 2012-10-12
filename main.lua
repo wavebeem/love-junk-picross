@@ -24,7 +24,10 @@ function love.draw()
     local sw, sh = love.graphics.getWidth(), love.graphics.getHeight()
     size = (sh - mar*2 - (puzzle.size.rows + 1)*pad) / (puzzle.size.rows);
     size = math.ceil(size)
+    --size = 64
+    --size = 32
     size = 24
+    --size = 16
 
     --love.graphics.setColor(colors.border)
     --love.graphics.rectangle("fill", mar, mar, sw - 2*mar, sh - 2*mar)
@@ -35,12 +38,7 @@ function love.draw()
         h = sh - 2*mar + 2*pad,
         color = colors.border,
         outline = true,
-        outlineAlpha = 64,
-    }
-
-    local focus = {
-        row = 1,
-        col = 1,
+        outlineColor = colors.outline,
     }
 
     for r = 1, puzzle.size.rows do
@@ -49,8 +47,7 @@ function love.draw()
             local color  = colors[filled and "selected" or "fg"]
             --love.graphics.setColor(color)
             --love.graphics.rectangle("fill", x, y, size, size)
-            print(x, y, size)
-            local isFocused = focus.row == r and focus.col == c
+            local isFocused = cursor.row == r and cursor.col == c
             draw.rectangle {
                 x = x,
                 y = y,
@@ -58,8 +55,8 @@ function love.draw()
                 h = size,
                 color = color,
                 outline = true,
-                outlineAlpha = 16,
-                outlineWidth = isFocused and 3 or 1,
+                outlineWidth = isFocused and (size < 32 and 3 or 6) or 1,
+                outlineColor = colors[isFocused and "cursor" or (filled and "outline" or "edge")],
             }
             x = x + size + pad
         end
@@ -74,14 +71,24 @@ end
 function love.update(dt)
 end
 
-function love.keypressed(key, unicode)
-    if love.keyboard.isDown("lalt")
-    then key = "alt_" .. key
-    end
+local function decoratedKey(modifier, key)
+    local lmod = "l" .. modifier
+    local rmod = "r" .. modifier
+    local down = love.keyboard.isDown
+    local pressed = down(lmod)  or down(rmod)
+    local same    = key == lmod or key == rmod
+    local modkey  = modifier .. "_" .. key
 
-    if love.keyboard.isDown("lmeta")
-    then key = "meta_" .. key
+    if pressed and not same
+    then return modkey
+    else return key
     end
+end
+
+function love.keypressed(key, unicode)
+    key = decoratedKey("alt",   key)
+    key = decoratedKey("meta",  key)
+    key = decoratedKey("super", key)
 
     print("key pressed: " ..  key)
 
